@@ -6,8 +6,8 @@ import (
 	"github.com/dgrijalva/jwt-go"
 )
 
-// TODO role namespace url should come from config
-const RolesClaimKey = "https://{{ .serviceUrl }}/roles"
+// TODO role namespace url should come from config - and the tests should sign their own tokens, so this works
+const RolesClaimKey = "https://github.com/StephanHCB/go-campaign-service/roles"
 
 func extractClaimFromTokenInContext(ctx context.Context, claimKey string) (interface{}, error) {
 	token, ok := ctx.Value("user").(*jwt.Token)
