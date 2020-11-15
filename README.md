@@ -57,3 +57,23 @@ cd $BASEDIR
 
 Now would be a good time to enter the service directory, and commit all the generated files to git.
 This way you will be able to see differences when re-generating.
+
+## Running the service and its tests
+
+I have left in some functionality in the generated service, you can configure, build and run it as follows:
+
+```
+cd $BASEDIR/example-rendered-service
+go build main.go
+cp docs/config-template.yaml config.yaml
+cp docs/secrets-template.yaml secrets.yaml
+./main --config-path=. --secrets-path=. --database.migrate=true
+```
+
+You can also execute the tests, and if you have pact installed as described in the
+[pact-go manual](https://github.com/pact-foundation/pact-go#installation), even the contract tests will work:
+
+```
+cd $BASEDIR/example-rendered-service
+go test ./...
+```
