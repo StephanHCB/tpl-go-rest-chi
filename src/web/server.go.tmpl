@@ -1,0 +1,64 @@
+package web
+
+import (
+	"fmt"
+	aulogging "github.com/StephanHCB/go-autumn-logging"
+	"github.com/StephanHCB/go-autumn-logging-zerolog/loggermiddleware"
+	"{{ .serviceUrl }}/internal/repository/configuration"
+	"{{ .serviceUrl }}/internal/service/campaignsrv"
+	"{{ .serviceUrl }}/web/controller/campaignctl"
+	"{{ .serviceUrl }}/web/controller/healthctl"
+	"{{ .serviceUrl }}/web/controller/swaggerctl"
+	"{{ .serviceUrl }}/web/middleware/authentication"
+	"{{ .serviceUrl }}/web/middleware/requestidinresponse"
+	"{{ .serviceUrl }}/web/middleware/requestlogging"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"net/http"
+)
+
+// use this for easy mocking
+
+var failFunction = fail
+
+func fail(err error) {
+	// this does os.exit 1
+	aulogging.Logger.NoCtx().Fatal().WithErr(err).Print(err.Error())
+}
+
+func Create(campaignService campaignsrv.CampaignService) chi.Router {
+	aulogging.Logger.NoCtx().Info().Print("Creating router and setting up filter chain")
+	server := chi.NewRouter()
+
+	middleware.RequestIDHeader = "X-B3-TraceId"
+	server.Use(middleware.RequestID)
+
+	server.Use(middleware.Logger)
+	requestlogging.Setup()
+
+	server.Use(loggermiddleware.AddZerologLoggerToContext)
+
+	server.Use(requestidinresponse.AddRequestIdHeaderToResponse)
+
+	server.Use(authentication.AddJWTTokenInfoToContext(configuration.SecuritySecret()))
+
+	aulogging.Logger.NoCtx().Info().Print("Setting up routes")
+
+	_ = campaignctl.Create(server, campaignService)
+
+	healthctl.Create(server)
+
+	swaggerctl.SetupSwaggerRoutes(server)
+
+	return server
+}
+
+func Serve(server chi.Router) {
+	address := configuration.ServerAddress()
+	aulogging.Logger.NoCtx().Info().Print("Starting web server on " + address)
+	err := http.ListenAndServe(address, server)
+	if err != nil {
+		// TODO log a warning on intentional shutdown, and an error otherwise
+		failFunction(fmt.Errorf("Fatal error while starting web server: %s\n", err))
+	}
+}

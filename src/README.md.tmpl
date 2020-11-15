@@ -1,0 +1,92 @@
+# {{ .serviceName }}
+
+## Overview
+
+TODO add an overview of what your service does here
+
+TODO you will need to adapt/remove some of the example code we've left in as guidance
+
+## Developer Instructions
+
+### Development Project Setup
+
+This service uses go modules to provide dependency management, see `go.mod`.
+
+If you place this repository OUTSIDE of your gopath, go build and go test will clone
+all required dependencies by default.
+
+### Running on Localhost
+
+On the command line, `go build main.go` will download all dependencies and build a standalone executable
+for you.
+
+The executable expects two configuration files `config.yaml` and `secrets.yaml` in the current directory.
+You can override their path locations by passing command line options as follows:
+
+```main --config-path=. --secrets-path=.``` 
+
+Find configuration templates under docs, copy them to the main directory and edit them so they fit your
+environment.
+
+#### Database Configuration
+
+For your convenience, this service includes an in-memory database which is enabled by default, and is also
+used by the automated tests.
+
+If you would like to instead use a mysql database, and thus retain your data between runs, add something
+like this to your `config.yaml`:
+
+```yaml
+database:
+  use: 'mysql' # defaults to 'inmemory'
+  mysql:
+    username: 'demouser'
+    password: 'demopw'
+    database: 'tcp(localhost:3306)/dbname'
+    parameters:
+      - 'charset=utf8mb4'
+      - 'collation=utf8mb4_general_ci'
+      - 'parseTime=True'
+      - 'timeout=30s' # connection timeout
+```
+
+### Running the Automated Tests
+
+This service comes with unit, acceptance, and consumer driven contract tests. 
+
+You can run all of these on the command line:
+
+```go test ./...```
+
+In order for the **contract tests** to work, you will need to perform some additional installation:
+
+#### Contract Tests
+
+This service uses pact-go for consumer driven contract tests.
+
+##### Installation of Pact
+
+Download and install the pact command line tools and add them to your path as described in the
+[pact-go manual](https://github.com/pact-foundation/pact-go#installation). This step is system
+dependent.
+
+##### Run The Contract Tests
+
+Use
+
+`go test -v {{ .serviceUrl }}/...`
+
+to run the consumer side test and generate the pact json file.
+
+Then do the same in the producer project.
+
+`go test -v github.com/StephanHCB/go-mailer-service/...`
+
+##### Contract Testing Tutorial
+
+[pact-go tutorial](https://github.com/pact-foundation/pact-workshop-go) takes about 60 minutes
+and teaches you lots of little details.
+
+## TODO
+
+* only forward authentication if url in address whitelist (add to config) - TODO in httpcall.go

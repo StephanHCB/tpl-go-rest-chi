@@ -1,0 +1,23 @@
+server:
+  port: 8081
+service:
+  name: {{ .serviceName }}
+database:
+  use: 'inmemory'
+  mysql:
+    username: 'demouser'
+    password: 'demopw'
+    database: 'tcp(localhost:3306)/dbname'
+    parameters:
+      - 'charset=utf8mb4'
+      - 'collation=utf8mb4_general_ci'
+      - 'parseTime=True'
+      - 'timeout=30s' # connection timeout
+downstream:
+  mailerservice:
+    url: 'http://localhost:8080/'
+    timeoutMs: 1000
+metrics:
+  listen:
+    enable: true
+    port: ':9090'

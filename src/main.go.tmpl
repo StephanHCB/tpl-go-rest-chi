@@ -1,0 +1,25 @@
+package main
+
+import (
+	"{{ .serviceUrl }}/internal/repository/configuration"
+	"{{ .serviceUrl }}/internal/repository/database"
+	"{{ .serviceUrl }}/internal/repository/logging"
+	"{{ .serviceUrl }}/internal/repository/mailservice/mailserviceclient"
+	"{{ .serviceUrl }}/internal/service/campaignsrv"
+	"{{ .serviceUrl }}/web"
+)
+
+func main() {
+	logging.Setup()
+	configuration.Setup()
+	logging.PostConfigSetup()
+
+	database.Open()
+	defer database.Close()
+	database.MigrateIfEnabled()
+
+	web.StartMetricsServer()
+
+	server := web.Create(campaignsrv.Create(mailserviceclient.Create()))
+	web.Serve(server)
+}
